@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#365c47"><meta name="description" content="Favourite recipes, long-storage staples and a simple shopping list saved in your browser.">
 <title>Simple Recipes · A well-kept kitchen</title>
-<link rel="stylesheet" href="./styles.css"><script src="./app.js?v=20261102-collection" defer></script>
+<link rel="stylesheet" href="./styles.css?v=20261102-bottom-nav"><script src="./app.js?v=20261102-backup-text" defer></script>
 </head>
 <body>
 <header class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true">s.</span><div><span class="eyebrow">A WELL-KEPT KITCHEN</span><h1>Simple Recipes</h1></div></div><button id="backup-button" class="quiet">Backups &amp; help</button></header>
@@ -13,7 +13,7 @@
 <p id="storage-warning" class="warning" role="status" hidden></p>
 <nav class="tabs" aria-label="Kitchen sections"><button data-tab="staples" aria-current="page">Staples</button><button data-tab="recipes">Recipes</button><button data-tab="shopping">Shopping List <span id="shopping-count">0</span></button></nav>
 <section id="workspace" aria-label="Staples"></section>
-<footer>Made for everyday cooking. Saved in this browser, without automatic device sync. <button class="text-button" id="footer-backup">Export a backup</button></footer>
+<footer>Made for everyday cooking. Saved in this browser, without automatic device sync. <button class="text-button" id="footer-backup">Backup &amp; restore</button></footer>
 </main>
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="modal" aria-labelledby="modal-title"><div class="modal-top"><button id="modal-back" class="quiet" hidden>← Back</button><button id="modal-close" class="close" aria-label="Close dialog">✕</button></div><div id="modal-body"></div></dialog>

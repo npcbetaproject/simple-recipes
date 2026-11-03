@@ -36,3 +36,7 @@ Visible Edit controls have been removed as requested. Introductory copy and spac
 ## Requested collection
 
 The starter collection now has 12 staples and 5 recipes. Black turtle beans, canned tuna, rice bags, frozen smoked salmon, Kewpie mayo, nori, olive oil, oat milk and organic cereal use shared ingredient links. Recipes include Costa Rican black turtle beans, tuna sandwich, tuna mayo onigiri, rice and smoked salmon, and rice and beans. Flour, canned tomatoes, dried lentils and oats are retired starter staples; canned tomatoes remain a recipe ingredient. Existing untouched sample entries are updated once, while custom entries, recipe amounts and shopping state remain intact. The `appliedUpdates` marker prevents deleted entries from returning on subsequent loads. Eight automated regression suites pass, including collection updates and retired-staple migration.
+
+## Bottom navigation and text backups
+
+Staples, Recipes and Shopping List stay in a bottom navigation bar, with space reserved so content is not covered. Backups & help supports both JSON file downloads/imports and copy/paste. Copy backup text reveals a selectable complete JSON backup; if clipboard permission is unavailable, use the device Copy menu or Ctrl/Cmd+C. Paste a complete backup into the restore field to validate it and confirm replacement. Nothing is read from the clipboard automatically.
