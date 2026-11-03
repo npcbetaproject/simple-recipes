@@ -30,7 +30,7 @@ function seed(){
  add('pork-chops','Pork chops (bone-in)','Freezer',2,'packs',1,false,'Freeze well wrapped if not cooking soon; thaw in the refrigerator. Save clean uncooked bones separately for congee and freeze promptly if needed.');
  add('garlic-powder','Garlic powder','Oils & seasonings',1,'jar',1,true,'Keep tightly closed in a cool, dry cupboard away from steam and direct heat.');
  add('paprika','Paprika powder','Oils & seasonings',1,'jar',1,true,'Store tightly sealed away from light, moisture and heat; colour and flavour fade with time.');
- add('japanese-curry','Japanese curry cubes','Canned foods',2,'boxes',1,true,'Store unopened as labelled, cool and dry. Follow package directions after opening; check ingredients for wheat or dairy if relevant.');
+ add('japanese-curry','Japanese curry cubes','Oils & seasonings',2,'boxes',1,true,'Store unopened as labelled, cool and dry. Follow package directions after opening; check ingredients for wheat or dairy if relevant.');
  const fresh=(id,name,category,unit)=>ingredients.push({id,name,category,purchaseQty:1,purchaseUnit:unit,stapleId:null,sample:true});
  fresh('i-tomatoes','Canned tomatoes','Canned foods','can');
  fresh('i-bread','Sandwich bread','Breakfast','loaf');fresh('i-onion','Onion','Produce','onion');fresh('i-garlic','Garlic','Produce','bulb');fresh('i-lemon','Lemon','Produce','lemon');
