@@ -32,3 +32,7 @@ A real browser JSON download/import round trip also passed, with replacement con
 ## Compact browsing update
 
 Visible Edit controls have been removed as requested. Introductory copy and spacing are reduced; category buttons scroll horizontally and storage notes expand on demand. The first complete card is prioritized above the fold on a small phone; the full collection scrolls normally. Saved browser data and backup format are unchanged.
+
+## Requested collection
+
+The starter collection now has 12 staples and 5 recipes. Black turtle beans, canned tuna, rice bags, frozen smoked salmon, Kewpie mayo, nori, olive oil, oat milk and organic cereal use shared ingredient links. Recipes include Costa Rican black turtle beans, tuna sandwich, tuna mayo onigiri, rice and smoked salmon, and rice and beans. Flour, canned tomatoes, dried lentils and oats are retired starter staples; canned tomatoes remain a recipe ingredient. Existing untouched sample entries are updated once, while custom entries, recipe amounts and shopping state remain intact. The `appliedUpdates` marker prevents deleted entries from returning on subsequent loads. Eight automated regression suites pass, including collection updates and retired-staple migration.

@@ -1,7 +1,7 @@
 'use strict';
 (() => {
 const KEY='simple-recipes.v1', VERSION=1;
-const CATEGORIES=['Grains & pasta','Canned foods','Beans & lentils','Baking','Oils & seasonings','Breakfast','Produce','Refrigerated','Other'];
+const CATEGORIES=['Grains & pasta','Canned foods','Beans & lentils','Baking','Oils & seasonings','Breakfast','Produce','Refrigerated','Freezer','Other'];
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>globalThis.crypto?.randomUUID?.()||`id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -11,27 +11,28 @@ const sampleBadge=x=>x.sample?'<span class="badge">Sample</span>':'';
 function seed(){
  const staples=[], ingredients=[];
  const add=(id,name,category,keep,unit,buy,longStorage,notes)=>{const ingredientId='i-'+id;staples.push({id,name,category,keep,unit,buy,longStorage,notes,ingredientId,sample:true});ingredients.push({id:ingredientId,name,category,purchaseQty:buy,purchaseUnit:unit,stapleId:id,sample:true});};
- add('rice','White rice','Grains & pasta',2,'bags',1,true,'Keep in a sealed, dry, pest-resistant container in a cool place. Rotate older packages first.');
+ add('rice','Rice bags','Grains & pasta',2,'bags',1,true,'Keep in a sealed, dry, pest-resistant container in a cool place. Rotate older packages first.');
  add('pasta','Dried pasta','Grains & pasta',4,'packs',1,true,'Keep dry in sealed packaging; protect from moisture and pests.');
- add('tuna','Canned tuna','Canned foods',6,'cans',2,true,'Store unopened cans in a cool, dry cupboard. Avoid damaged or bulging cans; follow package guidance.');
- add('tomatoes','Canned tomatoes','Canned foods',4,'cans',2,true,'Keep unopened cans cool and dry. Refrigerate leftovers in a suitable covered container.');
- add('black-beans','Dried black beans','Beans & lentils',2,'bags',1,true,'Use airtight packaging in a cool, dry place. Older beans may take longer to soften.');
+ add('tuna','Tuna canned','Canned foods',6,'cans',2,true,'Store unopened cans in a cool, dry cupboard. Avoid damaged or bulging cans; follow package guidance.');
+ add('black-beans','Black turtle beans','Beans & lentils',2,'bags',1,true,'Use airtight packaging in a cool, dry place. Older beans may take longer to soften.');
  add('canned-beans','Canned black beans','Canned foods',4,'cans',2,true,'Store unopened cans cool and dry; check packaging and rotate regularly.');
- add('lentils','Dried lentils','Beans & lentils',2,'bags',1,true,'Keep sealed, cool and dry, away from pests.');
- add('flour','All-purpose flour','Baking',1,'bag',1,true,'Seal against moisture and pests; follow the package date and check for off smells.');
- add('oil','Cooking oil','Oils & seasonings',1,'bottle',1,true,'Keep tightly closed away from heat and light. Storage life varies by oil and packaging.');
+ add('oil','Olive oil','Oils & seasonings',1,'bottle',1,true,'Keep tightly closed away from heat and light. Storage life varies by oil and packaging.');
  add('salt','Salt','Oils & seasonings',1,'container',1,true,'Keep dry and tightly covered.');
- add('mayo','Mayonnaise','Oils & seasonings',1,'bottle',1,false,'Follow label instructions; refrigerate after opening.');
+ add('mayo','Kewpie mayo','Oils & seasonings',1,'bottle',1,false,'Follow label instructions; refrigerate after opening.');
  add('nori','Nori sheets','Grains & pasta',2,'packs',1,true,'Keep airtight and dry. Use promptly after opening for best texture.');
- add('oats','Rolled oats','Breakfast',2,'bags',1,true,'Store sealed, cool and dry; rotate to maintain quality.');
+ add('smoked-salmon','Smoked salmon (frozen)','Freezer',2,'packs',1,false,'Keep frozen according to the label. Thaw in the refrigerator and follow package directions for use after thawing.');
+ add('oat-milk','Oat milk','Breakfast',2,'cartons',1,true,'For extended storage, choose shelf-stable cartons. Keep unopened cartons as labelled and refrigerate after opening. Chilled oat milk needs refrigeration throughout.');
+ add('organic-cereal','Organic cereal','Breakfast',2,'boxes',1,true,'Keep in a cool, dry cupboard. Seal the inner bag after opening to protect from moisture and pests; follow the package date.');
  const fresh=(id,name,category,unit)=>ingredients.push({id,name,category,purchaseQty:1,purchaseUnit:unit,stapleId:null,sample:true});
+ fresh('i-tomatoes','Canned tomatoes','Canned foods','can');
  fresh('i-bread','Sandwich bread','Breakfast','loaf');fresh('i-onion','Onion','Produce','onion');fresh('i-garlic','Garlic','Produce','bulb');fresh('i-lemon','Lemon','Produce','lemon');
  const line=(ingredientId,quantity,unit)=>({id:uid(),ingredientId,quantity,unit});
  const recipes=[
- {id:'r-onigiri',name:'Tuna onigiri',servings:4,prep:15,cook:20,tags:['Budget friendly','Lactose free'],ingredients:[line('i-rice','1','cup uncooked'),line('i-tuna','1','can, drained'),line('i-mayo','1','tablespoon'),line('i-nori','2','sheets'),line('i-salt','1/4','teaspoon')],instructions:'1. Cook the rice following its package instructions. Let it cool just enough to handle safely.\n2. Mix the drained tuna with mayonnaise.\n3. With damp, lightly salted hands, shape rice around small portions of filling.\n4. Wrap with nori just before eating.\n5. Refrigerate leftovers promptly; do not leave cooked rice or tuna filling at room temperature.',notes:'Makes 4 onigiri. Check mayonnaise and nori labels for dietary needs.',sample:true},
- {id:'r-sandwich',name:'Japanese tuna sandwiches',servings:2,prep:10,cook:0,tags:['Quick meals','Budget friendly','Lactose free'],ingredients:[line('i-tuna','1','can, drained'),line('i-mayo','2','tablespoons'),line('i-bread','4','slices'),line('i-lemon','1','teaspoon juice')],instructions:'1. Drain tuna thoroughly and flake with a fork.\n2. Stir in mayonnaise and lemon juice.\n3. Divide between two sandwiches. Trim crusts if you like, then cut in halves.\n4. Serve promptly or refrigerate.',notes:'Use soft dairy-free bread and check condiment labels if avoiding lactose.',sample:true},
+ {id:'r-salmon-rice',name:'Rice and smoked salmon',servings:2,prep:10,cook:20,tags:['Quick meals','Lactose free'],ingredients:[line('i-rice','1','cup uncooked'),line('i-smoked-salmon','150','g'),line('i-mayo','1','tablespoon'),line('i-nori','1','sheet')],instructions:'1. Thaw the smoked salmon in the refrigerator according to its label. Check whether the product is ready to eat or requires cooking; follow the package instructions.\n2. Cook rice according to its package.\n3. Divide warm rice between bowls. Add the prepared salmon, a little Kewpie mayo and torn nori.\n4. Serve promptly. Refrigerate leftovers promptly and follow the salmon label for use after thawing.',notes:'Purchase amounts are independent of recipe amounts. Choose smoked salmon that suits your intended use and follow its storage directions.',sample:true},
+ {id:'r-onigiri',name:'Tuna mayo onigiri',servings:4,prep:15,cook:20,tags:['Budget friendly','Lactose free'],ingredients:[line('i-rice','1','cup uncooked'),line('i-tuna','1','can, drained'),line('i-mayo','1','tablespoon'),line('i-nori','2','sheets'),line('i-salt','1/4','teaspoon')],instructions:'1. Cook the rice following its package instructions. Let it cool just enough to handle safely.\n2. Mix the drained tuna with mayonnaise.\n3. With damp, lightly salted hands, shape rice around small portions of filling.\n4. Wrap with nori just before eating.\n5. Refrigerate leftovers promptly; do not leave cooked rice or tuna filling at room temperature.',notes:'Makes 4 onigiri. Check mayonnaise and nori labels for dietary needs.',sample:true},
+ {id:'r-sandwich',name:'Tuna sandwich',servings:2,prep:10,cook:0,tags:['Quick meals','Budget friendly','Lactose free'],ingredients:[line('i-tuna','1','can, drained'),line('i-mayo','2','tablespoons'),line('i-bread','4','slices'),line('i-lemon','1','teaspoon juice')],instructions:'1. Drain tuna thoroughly and flake with a fork.\n2. Stir in mayonnaise and lemon juice.\n3. Divide between two sandwiches. Trim crusts if you like, then cut in halves.\n4. Serve promptly or refrigerate.',notes:'Use soft dairy-free bread and check condiment labels if avoiding lactose.',sample:true},
  {id:'r-rice-beans',name:'Weeknight rice and beans',servings:4,prep:10,cook:25,tags:['Budget friendly','Lactose free','Freezer friendly'],ingredients:[line('i-rice','1','cup uncooked'),line('i-canned-beans','1','can, drained'),line('i-tomatoes','1','can'),line('i-onion','1','onion'),line('i-oil','1','tablespoon'),line('i-salt','to taste','')],instructions:'1. Cook rice according to the package.\n2. Dice onion and soften in oil in a separate pan.\n3. Add tomatoes and drained beans. Simmer for 10–15 minutes, stirring occasionally.\n4. Season to taste and serve over rice.\n5. Cool leftovers promptly and refrigerate or freeze in meal-size portions.',notes:'Add cumin or a little hot sauce if available. Water is not a shopping ingredient.',sample:true},
- {id:'r-ip-beans',name:'Instant Pot black beans',servings:6,prep:10,cook:70,tags:['Instant Pot','Budget friendly','Lactose free','Freezer friendly'],ingredients:[line('i-black-beans','1','pound dried'),line('i-onion','1','onion'),line('i-garlic','2','cloves'),line('i-salt','1','teaspoon')],instructions:'1. Sort and rinse black beans. Add to the pot with onion, garlic and about 6 cups water. Stay below the appliance’s marked limit for expanding foods.\n2. Pressure cook on high for about 30–40 minutes for unsoaked black beans, following your appliance instructions. Allow natural pressure release for at least 20 minutes.\n3. Check tenderness; older beans may need another short pressure cycle. Season to taste.\n4. Drain if desired. Cool promptly and refrigerate or freeze in small portions.',notes:'Cooking time includes an approximate allowance for pressure build-up and release. Do not substitute dried kidney beans into this recipe.',sample:true}
+ {id:'r-ip-beans',name:'Costa Rican black turtle beans',servings:6,prep:10,cook:70,tags:['Instant Pot','Budget friendly','Lactose free','Freezer friendly'],ingredients:[line('i-black-beans','1','pound dried'),line('i-onion','1','onion'),line('i-garlic','2','cloves'),line('i-salt','1','teaspoon')],instructions:'1. Sort and rinse black beans. Add to the pot with onion, garlic and about 6 cups water. Stay below the appliance’s marked limit for expanding foods.\n2. Pressure cook on high for about 30–40 minutes for unsoaked black beans, following your appliance instructions. Allow natural pressure release for at least 20 minutes.\n3. Check tenderness; older beans may need another short pressure cycle. Season to taste.\n4. Drain if desired. Cool promptly and refrigerate or freeze in small portions.',notes:'Cooking time includes an approximate allowance for pressure build-up and release. Do not substitute dried kidney beans into this recipe.',sample:true}
  ];return {version:VERSION,staples,ingredients,recipes,shopping:[]};
 }
 function validate(d){
@@ -41,6 +42,7 @@ function validate(d){
  const id=v=>str(v,100)&&/^[a-zA-Z0-9_-]+$/.test(v);
  const unique=a=>new Set(a.map(x=>x.id)).size===a.length;
  if(!['staples','ingredients','recipes'].every(k=>d[k].every(x=>x&&id(x.id))&&unique(d[k])))fail();
+ if(d.appliedUpdates!==undefined&&(!Array.isArray(d.appliedUpdates)||d.appliedUpdates.length>100||!d.appliedUpdates.every(x=>str(x,100))))fail();
  const ing=new Map(d.ingredients.map(x=>[x.id,x])), staples=new Map(d.staples.map(x=>[x.id,x]));
  const validName=v=>str(v,200)&&v.trim().length>0;
  const numeric=v=>typeof v==='number'&&positive(v);
@@ -54,8 +56,28 @@ function validate(d){
  for(const x of d.shopping)if(!x||!ing.has(x.ingredientId)||!numeric(x.quantity)||!validName(x.unit)||typeof x.checked!=='boolean')fail();
  return JSON.parse(JSON.stringify(d));
 }
+function retireStarterStaples(d){
+ const retired=new Set(['flour','tomatoes','lentils','oats']);
+ const removed=d.staples.filter(s=>s.sample&&retired.has(s.id));
+ if(!removed.length)return false;
+ for(const s of removed){const i=d.ingredients.find(i=>i.id===s.ingredientId);if(i)i.stapleId=null;}
+ d.staples=d.staples.filter(s=>!removed.includes(s));
+ return true;
+}
+function applyRequestedCollection(d){
+ const update='collection-2026-11-02';
+ if(d.appliedUpdates?.includes(update)||!d.ingredients.length)return false;
+ const template=seed();
+ const existingIds=['rice','tuna','black-beans','mayo','nori','oil'];
+ for(const id of existingIds){const old=d.staples.find(s=>s.id===id),next=template.staples.find(s=>s.id===id);if(old?.sample){const i=d.ingredients.find(i=>i.id===old.ingredientId);if(i?.sample){old.name=next.name;i.name=next.name;}}}
+ for(const id of ['smoked-salmon','oat-milk','organic-cereal']){const next=template.staples.find(s=>s.id===id);if(!d.staples.some(s=>s.id===id)&&!d.ingredients.some(i=>normalize(i.name)===normalize(next.name)||i.id===next.ingredientId)){d.staples.push(next);d.ingredients.push(template.ingredients.find(i=>i.id===next.ingredientId));}}
+ for(const id of ['r-onigiri','r-sandwich','r-ip-beans']){const old=d.recipes.find(r=>r.id===id),next=template.recipes.find(r=>r.id===id);if(old?.sample)old.name=next.name;}
+ const salmonRecipe=template.recipes.find(r=>r.id==='r-salmon-rice');
+ if(!d.recipes.some(r=>r.id===salmonRecipe.id)&&salmonRecipe.ingredients.every(l=>d.ingredients.some(i=>i.id===l.ingredientId)))d.recipes.push(salmonRecipe);
+ d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
+}
 let state, storageOK=true, recovery=false;
-try{const raw=localStorage.getItem(KEY);state=raw===null?seed():validate(JSON.parse(raw));if(raw===null)localStorage.setItem(KEY,JSON.stringify(state));}
+try{const raw=localStorage.getItem(KEY);state=raw===null?seed():validate(JSON.parse(raw));const retired=retireStarterStaples(state);const added=applyRequestedCollection(state);if(raw===null||retired||added){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;}}}
 catch(e){storageOK=false;recovery=true;state={version:VERSION,staples:[],ingredients:[],recipes:[],shopping:[]};}
 const ui={tab:'staples',search:'',category:'All',listed:false,long:false,tag:'All'};
 let modalMode=null,modalId=null,recipeBack=null,lastFocus=null,toastTimer;
@@ -139,7 +161,7 @@ function persistForm(f){
  closeModal();changed();toast('Saved');
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`simple-recipes-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Backup exported');}
-async function importData(file){if(!file)return;try{if(file.size>10000000)throw Error('Choose a backup smaller than 10 MB.');const next=validate(JSON.parse(await file.text()));if(!confirm(`Replace all current app data with ${next.staples.length} staples, ${next.recipes.length} recipes and ${next.shopping.length} shopping items? Export a backup first if you need the current data.`))return;state=next;recovery=false;save();ui.search='';ui.category='All';ui.tag='All';closeModal();render();toast(storageOK?'Backup restored':'Restored in this tab only — export before closing');}catch(e){$('#import-error').textContent=e instanceof SyntaxError?'This file is not valid JSON. Nothing has been replaced.':e.message;}finally{if($('#import-file'))$('#import-file').value='';}}
+async function importData(file){if(!file)return;try{if(file.size>10000000)throw Error('Choose a backup smaller than 10 MB.');const next=validate(JSON.parse(await file.text()));retireStarterStaples(next);applyRequestedCollection(next);if(!confirm(`Replace all current app data with ${next.staples.length} staples, ${next.recipes.length} recipes and ${next.shopping.length} shopping items? Export a backup first if you need the current data.`))return;state=next;recovery=false;save();ui.search='';ui.category='All';ui.tag='All';closeModal();render();toast(storageOK?'Backup restored':'Restored in this tab only — export before closing');}catch(e){$('#import-error').textContent=e instanceof SyntaxError?'This file is not valid JSON. Nothing has been replaced.':e.message;}finally{if($('#import-file'))$('#import-file').value='';}}
 document.addEventListener('click',e=>{
  const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.search='';render();return;}
  const category=e.target.closest('[data-category]');if(category){ui.category=category.dataset.category;render();$$('[data-category]').find(x=>x.dataset.category===ui.category)?.focus();return;}
