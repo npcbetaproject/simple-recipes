@@ -44,3 +44,11 @@ Staples, Recipes and Shopping List stay in a bottom navigation bar, with space r
 ## Soba, freezer and pork additions
 
 The collection now includes 20 starter staples and 9 recipes. Eight additions: soba buckwheat noodles, cold-soba sauce, green onion, frozen blueberries, bone-in pork chops, garlic powder, paprika powder and Japanese curry cubes. Linked recipes: cold soba, garlic/paprika pork chops, pork-bone congee and simple Japanese curry rice. Pork chops and congee share an ingredient ID so the same purchase cannot be added twice. Congee notes explain using saved bones and straining out fragments. Additions apply once to existing collections and backups; ten regression suites cover the resulting links, migration and duplicate prevention.
+
+## Prepper checklist
+
+The fourth bottom tab contains ten supplied readiness items and tasks. Tap an item name to open its use/tips, source links and editable status note. Check **Inventoried** independently of the **Need to acquire** star; starred items sort first, then alphabetically. A star can mean refill or another readiness action even when you own the item. Search and a starred-only filter help narrow the list.
+
+Starting states match the supplied list: small battery power station and solar panel checked, other missing items starred; propane is checked as owned and starred for refill, with its partial-fill note. The two fuel tasks begin uncompleted and starred. These are starting states, not ongoing measurements. Every toggle and saved note persists in the same browser and is included in JSON file and text backups. Older backups gain this section once; existing checklist states are never reset on reload. Pantry quantities and food shopping remain separate.
+
+Water, power and fuel tips link to Government of Canada, Ontario and municipal fire-safety guidance. Water-filter advice depends on the exact certified capabilities of the elements; brand alone is not a guarantee of safe water. Twelve automated regression suites cover checklist states, ordering, modal notes, reload, backup compatibility and import validation. Four-tab navigation and the tips modal were checked at 320px without horizontal overflow.
