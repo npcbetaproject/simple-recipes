@@ -90,7 +90,7 @@ function openModal(mode,id=null,back=null){
  if(!$('#modal').open)lastFocus=document.activeElement;
  modalMode=mode;modalId=id;recipeBack=back;
  renderModal();if(!$('#modal').open)$('#modal').showModal();$('#modal').scrollTop=0;
- requestAnimationFrame(()=>{const f=$('[autofocus]',$('#modal'))||$('#modal-title');if(f){f.tabIndex=f.tabIndex||-1;f.focus();}});
+ requestAnimationFrame(()=>{const f=$('[autofocus]',$('#modal'))||$('#modal-title');if(f){if(f.id==='modal-title')f.tabIndex=-1;f.focus();}});
 }
 function closeModal(){ $('#modal').close();modalMode=null;recipeBack=null;if(lastFocus?.isConnected)lastFocus.focus();else $(`[data-tab="${ui.tab}"]`).focus(); }
 function renderModal(){
