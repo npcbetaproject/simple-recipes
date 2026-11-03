@@ -1,6 +1,7 @@
 'use strict';
 (() => {
 const KEY='simple-recipes.v1', VERSION=1;
+const RECURRING_PREPPER_IDS=new Set(['propane','gas-jerry-can','vehicle-half-tank','lighter','aa-batteries','aaa-batteries']);
 const CATEGORIES=['Grains & pasta','Canned foods','Beans & lentils','Baking','Oils & seasonings','Breakfast','Produce','Refrigerated','Freezer','Other'];
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,8 +12,14 @@ const sampleBadge=x=>x.sample?'<span class="badge">Sample</span>':'';
 function seedPrepper(){
  const guide={label:'Ontario emergency preparedness',url:'https://www.ontario.ca/page/be-prepared-emergency'};
  const power={label:'Canada: preparing for power outages',url:'https://www.canada.ca/en/services/policing/emergencies/preparedness/get-prepared/hazards-emergencies/power-outages/how-prepare.html'};
- const row=(id,name,category,inventoried,priority,note,tips,sources=[guide])=>({id,name,category,inventoried,priority,note,tips,sources});
+ const row=(id,name,category,inventoried,priority,note,tips,sources=[guide])=>({id,name,category,inventoried,priority,note,tips,sources,reviewEveryMonths:RECURRING_PREPPER_IDS.has(id)?3:0,reviewDueAt:null});
  return [
+ row('backup-shovel','Backup shovel','Tools & cleanup',false,true,'',['Useful for clearing snow, loose soil or light debris so you can reach exits, supplies or a vehicle.','Store it where you can reach it without entering a blocked area. Wear suitable gloves and footwear; do not use it near live electrical equipment or damaged utility lines.']),
+ row('duct-tape','Duct tape','Tools & cleanup',false,true,'',['Useful for temporary repairs, securing protective sheeting and labelling or bundling supplies.','Keep the roll dry and protected from extreme temperatures. It is not a substitute for proper structural, electrical or gas-line repairs.']),
+ row('lighter','Lighter','Light & essentials',false,true,'',['Useful for lighting a compatible outdoor cooking appliance or emergency candle when appropriate.','Keep it away from children, heat and fuel containers. Test it periodically and check remaining fuel; follow the lighter and appliance instructions.','Battery lights avoid the fire risk of an open flame. Never use a lighter to check a gas leak.'],[{label:'Ontario fire safety',url:'https://www.ontario.ca/page/fire-safety-home'}]),
+ row('candles','Candles','Light & essentials',false,true,'',['A backup light source if safer battery lighting is unavailable. Keep suitable holders with them.','Use a stable, noncombustible holder away from anything that can burn. Never leave a candle unattended or burning while sleeping.','Prefer flashlights or battery lanterns, especially around children, pets or disrupted living spaces.'],[{label:'Ontario fire safety',url:'https://www.ontario.ca/page/fire-safety-home'}]),
+ row('aa-batteries','AA batteries','Power',false,true,'',['Useful spares for compatible flashlights, radios and other emergency equipment. Check each device uses AA rather than AAA.','Keep batteries in their packaging with terminals protected. Follow the package storage guidance and check dates and device operation periodically.','Do not mix old and new batteries or different types in one device. Inspect for leaks or damage and replace as directed by the manufacturer.'],[power]),
+ row('aaa-batteries','AAA batteries','Power',false,true,'',['Useful spares for compatible headlamps, small lights and other emergency equipment. Keep a note of which devices need AAA.','Keep batteries in their packaging with terminals protected. Follow package storage guidance and review the dates and your spare supply periodically.','Check the device before relying on it. Do not mix old and new batteries or different types.'],[power]),
  row('contractor-bags','Contractor bags','Tools & cleanup',false,true,'',['Useful for containing debris, separating wet gear and protecting supplies during a short emergency.','Keep some with work gloves. Ordinary contractor bags are not food-grade: do not use them to store drinking water or loose food.']),
  row('toolkit','Toolkit','Tools & cleanup',false,true,'',['Useful for small repairs, opening access panels and tightening loose fittings. Include familiar hand tools, a flashlight and work gloves.','Keep it accessible and check that essential tools are present. Leave electrical, gas and structural repairs to qualified people.']),
  row('berkey-filter','Berkey filter','Water',false,true,'',['A gravity-fed filter may help with water preparation without electricity, within the capabilities of its exact filter elements.','Check independently certified contaminant-reduction claims, element condition and maintenance instructions. Do not assume a brand or filter makes any source safe.','Follow local boil-water or do-not-use advisories. Keep stored drinking water as a separate backup.'],[{label:'Health Canada: choosing water treatment',url:'https://www.canada.ca/en/health-canada/services/environment/drinking-water/treatment.html'}]),
@@ -25,7 +32,38 @@ function seedPrepper(){
  row('vehicle-half-tank','Keep gas tank at least 50%','Fuel & readiness',false,true,'Ongoing readiness check',['Keeping the vehicle at least half full leaves more flexibility for evacuation, errands or reaching help when pumps are unavailable.','Check during routine trips and before a forecast outage. This is a recurring habit, not a one-time purchase.'],[power])
  ];
 }
-function ensurePrepper(d){if(d.prepperItems!==undefined)return false;d.prepperItems=seedPrepper();return true;}
+function threeMonthsFrom(now=new Date()){
+ const next=new Date(now.getTime()),day=next.getUTCDate();next.setUTCDate(1);next.setUTCMonth(next.getUTCMonth()+3);
+ const end=new Date(next.getTime());end.setUTCMonth(end.getUTCMonth()+1);end.setUTCDate(0);next.setUTCDate(Math.min(day,end.getUTCDate()));return next.toISOString();
+}
+function refreshPrepperReviews(d,now=new Date()){
+ let updated=false;const recurring=RECURRING_PREPPER_IDS;
+ for(const x of d.prepperItems||[]){
+  if(x.reviewEveryMonths===undefined){x.reviewEveryMonths=recurring.has(x.id)?3:0;updated=true;}
+  if(x.reviewDueAt===undefined){x.reviewDueAt=null;updated=true;}
+  if(!x.reviewEveryMonths||x.priority){if(x.reviewDueAt!==null){x.reviewDueAt=null;updated=true;}continue;}
+  if(!x.reviewDueAt){x.reviewDueAt=threeMonthsFrom(now);updated=true;}
+  else if(Date.parse(x.reviewDueAt)<=now.getTime()){x.priority=true;x.reviewDueAt=null;updated=true;}
+ }
+ return updated;
+}
+function addPrepperEssentials(d){
+ const update='prepper-essentials-2026-11-02';if(d.appliedUpdates?.includes(update)||!d.prepperItems.length)return false;
+ const additions=new Set(['backup-shovel','duct-tape','lighter','candles','aa-batteries','aaa-batteries']);
+ for(const x of seedPrepper().filter(x=>additions.has(x.id)))if(!d.prepperItems.some(old=>old.id===x.id||normalize(old.name)===normalize(x.name)))d.prepperItems.push(x);
+ d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
+}
+function addWeeklyStaples(d){
+ const update='weekly-staples-2026-11-02';if(d.appliedUpdates?.includes(update)||!d.ingredients.length)return false;
+ const template=seed(),ids=['protein-powder','coffee-regular','coffee-decaf','vitamin-c-packets','vitamin-b-pills','multivitamin','miso-paste','chopped-olives','canned-sardines'];
+ for(const id of ids){const next=template.staples.find(s=>s.id===id);if(!d.staples.some(s=>s.id===id)&&!d.ingredients.some(i=>i.id===next.ingredientId||normalize(i.name)===normalize(next.name))){d.staples.push(next);d.ingredients.push(template.ingredients.find(i=>i.id===next.ingredientId));}}
+ const old=d.staples.find(s=>s.id==='green-onion'),next=template.staples.find(s=>s.id==='green-onion'),i=d.ingredients.find(i=>i.id===old?.ingredientId);
+ if(old?.sample&&i?.sample){old.name=next.name;old.category=next.category;old.notes=next.notes;i.name=next.name;i.category=next.category;}
+ d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
+}
+function ensurePrepper(d){let updated=false;if(d.prepperItems===undefined){d.prepperItems=seedPrepper();updated=true;}const added=addPrepperEssentials(d);return refreshPrepperReviews(d)||updated||added;}
+function reviewStatus(x){if(!x.reviewEveryMonths)return '';return `<p class="small review-status">${x.priority?'Repeats 3 months after clearing the star':`Due again: ${escape(new Date(x.reviewDueAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}))}`}</p>`;}
+
 function seed(){
  const staples=[], ingredients=[];
  const add=(id,name,category,keep,unit,buy,longStorage,notes)=>{const ingredientId='i-'+id;staples.push({id,name,category,keep,unit,buy,longStorage,notes,ingredientId,sample:true});ingredients.push({id:ingredientId,name,category,purchaseQty:buy,purchaseUnit:unit,stapleId:id,sample:true});};
@@ -43,12 +81,22 @@ function seed(){
  add('organic-cereal','Organic cereal','Breakfast',2,'boxes',1,true,'Keep in a cool, dry cupboard. Seal the inner bag after opening to protect from moisture and pests; follow the package date.');
  add('soba-noodles','Soba buckwheat noodles','Grains & pasta',2,'packs',1,true,'Keep dried noodles sealed, cool and dry. Check the label: many soba noodles also contain wheat.');
  add('soba-sauce','Soba sauce (cold soba)','Oils & seasonings',1,'bottle',1,true,'Choose shelf-stable bottled sauce for pantry storage. Follow label directions for dilution and refrigeration after opening.');
- add('green-onion','Green onion','Produce',1,'bunch',1,false,'Keep refrigerated and use while fresh. Chopped green onion can be frozen for cooked dishes.');
+ add('green-onion','Green onion (chopped / frozen)','Freezer',1,'bunch',1,false,'Wash, dry and chop before freezing in a sealed container or bag. Label the date and take out portions as needed, especially for cooked dishes.');
  add('frozen-blueberries','Frozen blueberries','Freezer',2,'bags',1,false,'Keep frozen according to the package. Follow any package directions for preparation and use after thawing.');
  add('pork-chops','Pork chops (bone-in)','Freezer',2,'packs',1,false,'Freeze well wrapped if not cooking soon; thaw in the refrigerator. Save clean uncooked bones separately for congee and freeze promptly if needed.');
  add('garlic-powder','Garlic powder','Oils & seasonings',1,'jar',1,true,'Keep tightly closed in a cool, dry cupboard away from steam and direct heat.');
  add('paprika','Paprika powder','Oils & seasonings',1,'jar',1,true,'Store tightly sealed away from light, moisture and heat; colour and flavour fade with time.');
  add('japanese-curry','Japanese curry cubes','Oils & seasonings',2,'boxes',1,true,'Store unopened as labelled, cool and dry. Follow package directions after opening; check ingredients for wheat or dairy if relevant.');
+ add('protein-powder','Protein powder','Breakfast',1,'tub',1,true,'Keep tightly closed in a cool, dry place. Use a dry scoop and follow the package date and storage instructions.');
+ add('coffee-regular','Coffee — regular','Breakfast',1,'bag',1,true,'Keep sealed away from heat, moisture and light. Rotate opened coffee for freshness.');
+ add('coffee-decaf','Coffee — decaf','Breakfast',1,'bag',1,true,'Keep sealed away from heat, moisture and light. Label clearly to distinguish it from regular coffee.');
+ add('vitamin-c-packets','Vitamin C packets (Costco)','Other',1,'box',1,true,'Keep packets in their original packaging, cool and dry. Check package dates and follow the product label.');
+ add('vitamin-b-pills','Vitamin B pills','Other',1,'bottle',1,true,'Keep the specific product and strength labelled in its original bottle. Follow label storage and use instructions and check the expiry date.');
+ add('multivitamin','Multivitamin','Other',365,'tablets per adult',365,true,'Reserve target: 365 tablets per adult; adjust for the number of adults in your household. Store in original packaging and follow the label for use.');
+ const multivitamin=ingredients.find(i=>i.id==='i-multivitamin');multivitamin.purchaseQty=1;multivitamin.purchaseUnit='bottle';
+ add('miso-paste','Miso paste','Refrigerated',1,'tub',1,false,'Follow the package refrigeration instructions, especially after opening. Keep covered and use a clean spoon.');
+ add('chopped-olives','Chopped olives','Canned foods',2,'jars',1,true,'Store unopened jars as labelled. Refrigerate after opening and use a clean utensil.');
+ add('canned-sardines','Canned sardines','Canned foods',4,'cans',2,true,'Store unopened cans cool and dry; rotate and avoid damaged cans. Follow label instructions for leftovers after opening.');
  const fresh=(id,name,category,unit)=>ingredients.push({id,name,category,purchaseQty:1,purchaseUnit:unit,stapleId:null,sample:true});
  fresh('i-tomatoes','Canned tomatoes','Canned foods','can');
  fresh('i-bread','Sandwich bread','Breakfast','loaf');fresh('i-onion','Onion','Produce','onion');fresh('i-garlic','Garlic','Produce','bulb');fresh('i-lemon','Lemon','Produce','lemon');
@@ -78,15 +126,15 @@ function validate(d){
  const numeric=v=>typeof v==='number'&&positive(v);
  for(const x of d.ingredients)if(!validName(x.name)||!CATEGORIES.includes(x.category)||!numeric(x.purchaseQty)||!validName(x.purchaseUnit)||(x.stapleId!==null&&!staples.has(x.stapleId))||typeof x.sample!=='boolean')fail();
  if(new Set(d.ingredients.map(x=>normalize(x.name))).size!==d.ingredients.length)fail();
- for(const x of d.staples)if(!validName(x.name)||!CATEGORIES.includes(x.category)||!numeric(x.keep)||!numeric(x.buy)||!validName(x.unit)||!str(x.notes)||typeof x.longStorage!=='boolean'||typeof x.sample!=='boolean'||!ing.has(x.ingredientId)||ing.get(x.ingredientId).stapleId!==x.id||ing.get(x.ingredientId).name!==x.name)fail();
+ for(const x of d.staples)if(!validName(x.name)||(x.weeklyStarred!==undefined&&typeof x.weeklyStarred!=='boolean')||!CATEGORIES.includes(x.category)||!numeric(x.keep)||!numeric(x.buy)||!validName(x.unit)||!str(x.notes)||typeof x.longStorage!=='boolean'||typeof x.sample!=='boolean'||!ing.has(x.ingredientId)||ing.get(x.ingredientId).stapleId!==x.id||ing.get(x.ingredientId).name!==x.name)fail();
  for(const x of d.ingredients)if(x.stapleId&&staples.get(x.stapleId).ingredientId!==x.id)fail();
  const allLines=new Set();
- for(const r of d.recipes){if(!validName(r.name)||!numeric(r.servings)||![r.prep,r.cook].every(n=>Number.isFinite(n)&&n>=0&&n<=1000000)||!Array.isArray(r.tags)||r.tags.length>30||!r.tags.every(t=>validName(t))||!str(r.instructions,50000)||!str(r.notes)||typeof r.sample!=='boolean'||!Array.isArray(r.ingredients)||!r.ingredients.length||r.ingredients.length>200||new Set(r.ingredients.map(x=>x.ingredientId)).size!==r.ingredients.length)fail();for(const l of r.ingredients){if(!l||!id(l.id)||allLines.has(l.id)||!ing.has(l.ingredientId)||!validName(l.quantity)||!str(l.unit,200))fail();allLines.add(l.id);}}
+ for(const r of d.recipes){if(!validName(r.name)||(r.weeklyStarred!==undefined&&typeof r.weeklyStarred!=='boolean')||!numeric(r.servings)||![r.prep,r.cook].every(n=>Number.isFinite(n)&&n>=0&&n<=1000000)||!Array.isArray(r.tags)||r.tags.length>30||!r.tags.every(t=>validName(t))||!str(r.instructions,50000)||!str(r.notes)||typeof r.sample!=='boolean'||!Array.isArray(r.ingredients)||!r.ingredients.length||r.ingredients.length>200||new Set(r.ingredients.map(x=>x.ingredientId)).size!==r.ingredients.length)fail();for(const l of r.ingredients){if(!l||!id(l.id)||allLines.has(l.id)||!ing.has(l.ingredientId)||!validName(l.quantity)||!str(l.unit,200))fail();allLines.add(l.id);}}
  if(new Set(d.shopping.map(x=>x?.ingredientId)).size!==d.shopping.length)fail();
  for(const x of d.shopping)if(!x||!ing.has(x.ingredientId)||!numeric(x.quantity)||!validName(x.unit)||typeof x.checked!=='boolean')fail();
  if(d.prepperItems!==undefined){
   if(!Array.isArray(d.prepperItems)||d.prepperItems.length>1000||!unique(d.prepperItems))fail();
-  for(const x of d.prepperItems)if(!x||!id(x.id)||!validName(x.name)||!validName(x.category)||typeof x.inventoried!=='boolean'||typeof x.priority!=='boolean'||!str(x.note)||!Array.isArray(x.tips)||x.tips.length>30||!x.tips.every(t=>str(t)&&t.trim())||!Array.isArray(x.sources)||x.sources.length>10||!x.sources.every(v=>v&&validName(v.label)&&str(v.url,2000)&&/^https:\/\//.test(v.url)))fail();
+  for(const x of d.prepperItems)if(!x||(x.reviewEveryMonths!==undefined&&![0,3].includes(x.reviewEveryMonths))||(x.reviewDueAt!==undefined&&x.reviewDueAt!==null&&(typeof x.reviewDueAt!=='string'||!/^\d{4}-\d\d-\d\dT/.test(x.reviewDueAt)||!Number.isFinite(Date.parse(x.reviewDueAt))))||!id(x.id)||!validName(x.name)||!validName(x.category)||typeof x.inventoried!=='boolean'||typeof x.priority!=='boolean'||!str(x.note)||!Array.isArray(x.tips)||x.tips.length>30||!x.tips.every(t=>str(t)&&t.trim())||!Array.isArray(x.sources)||x.sources.length>10||!x.sources.every(v=>v&&validName(v.label)&&str(v.url,2000)&&/^https:\/\//.test(v.url)))fail();
  }
  return JSON.parse(JSON.stringify(d));
 }
@@ -123,7 +171,7 @@ function applySobaPorkCollection(d){
  d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
 }
 let state, storageOK=true, recovery=false;
-try{const raw=localStorage.getItem(KEY);state=raw===null?seed():validate(JSON.parse(raw));const retired=retireStarterStaples(state);const added=applyRequestedCollection(state);const sobaAdded=applySobaPorkCollection(state);const prepperAdded=ensurePrepper(state);if(raw===null||retired||added||sobaAdded||prepperAdded){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;}}}
+try{const raw=localStorage.getItem(KEY);state=raw===null?seed():validate(JSON.parse(raw));const retired=retireStarterStaples(state);const added=applyRequestedCollection(state);const sobaAdded=applySobaPorkCollection(state);const prepperAdded=ensurePrepper(state);const weeklyAdded=addWeeklyStaples(state);if(raw===null||retired||added||sobaAdded||prepperAdded||weeklyAdded){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;}}}
 catch(e){storageOK=false;recovery=true;state={version:VERSION,staples:[],ingredients:[],recipes:[],shopping:[],prepperItems:[]};}
 const ui={tab:'staples',search:'',category:'All',listed:false,long:false,tag:'All',priorityOnly:false};
 let modalMode=null,modalId=null,recipeBack=null,lastFocus=null,toastTimer;
@@ -145,11 +193,12 @@ function render(){
  w.innerHTML=`<div class="section-heading"><div><h2>${staple?'Pantry staples':'Favourite recipes'}</h2></div><button class="primary" data-action="${staple?'new-staple':'new-recipe'}">+ ${staple?'Add staple':'Add recipe'}</button></div><div class="toolbar"><label class="search">Search ${staple?'staples':'recipes'}<input type="search" id="search" placeholder="${staple?'Try rice, beans, tuna…':'Find your next meal…'}" value="${escape(ui.search)}"></label>${staple?`<div class="filter-row" aria-label="Staple categories">${['All',...CATEGORIES.filter(c=>!['Produce','Refrigerated'].includes(c)||state.staples.some(s=>s.category===c))].map(c=>`<button class="chip" data-category="${escape(c)}" aria-pressed="${c===ui.category}">${escape(c)}</button>`).join('')}</div><div class="toggles"><label class="check-label"><input type="checkbox" id="listed" ${ui.listed?'checked':''}>Shopping only</label><label class="check-label"><input type="checkbox" id="long" ${ui.long?'checked':''}>Long storage</label></div>`:`<label class="small" style="display:block;margin-top:12px">Recipe tag<select id="tag">${options(['All',...new Set(state.recipes.flatMap(r=>r.tags))],ui.tag)}</select></label>`}</div><p class="small results-note" id="results-note"></p><div id="cards" class="grid"></div>`;
  renderCards();
 }
+function weeklyStar(x,type){return `<button class="weekly-star ${x.weeklyStarred?'starred':''}" data-action="weekly-star" data-type="${type}" data-id="${x.id}" aria-pressed="${!!x.weeklyStarred}" aria-label="Plan this week: ${escape(x.name)}" title="Plan this week">${x.weeklyStarred?'★':'☆'}</button>`;}
 function renderCards(){
  const q=normalize(ui.search),staple=ui.tab==='staples';
- const rows=(staple?state.staples:state.recipes).filter(x=>normalize(staple?x.name+' '+x.notes:x.name+' '+x.tags.join(' ')).includes(q)).filter(x=>staple?(ui.category==='All'||x.category===ui.category)&&(!ui.listed||!!item(x.ingredientId))&&(!ui.long||x.longStorage):(ui.tag==='All'||x.tags.includes(ui.tag))).sort((a,b)=>a.name.localeCompare(b.name));
- $('#results-note').textContent=`${rows.length} ${staple?'staples':'recipes'} · A–Z`;
- $('#cards').innerHTML=rows.length?rows.map(x=>staple?`<article class="card"><div class="card-head"><div><div class="category">${escape(x.category)}</div><h3>${escape(x.name)} ${sampleBadge(x)}</h3></div></div><div class="staple-meta"><p class="keep">Keep: <strong>${x.keep} ${escape(x.unit)}</strong></p>${x.longStorage?'<span class="tag">Long storage</span>':''}</div><div class="card-links">${x.notes?`<details class="storage-notes"><summary>Storage notes</summary><p class="notes">${escape(x.notes)}</p></details>`:''}<button class="used" data-action="used" data-id="${x.id}">Used in ${counts(x.id).length} recipes →</button></div><div class="card-bottom">${purchase(x.ingredientId)}</div></article>`:`<article class="card recipe-card"><div>${sampleBadge(x)}</div><h3><button data-action="recipe" data-id="${x.id}">${escape(x.name)}</button></h3><div class="recipe-meta"><span>${x.prep+x.cook} min total</span><span>${x.servings} servings</span></div><p class="small" style="margin:0">Prep ${x.prep} min · Cook ${x.cook} min</p><div>${x.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div><div class="card-bottom"><button data-action="recipe" data-id="${x.id}">View recipe →</button></div></article>`).join(''):`<div class="empty"><h3>${staple?'No staples found':'No recipes found'}</h3><p class="small">Try another search or reset the filters, or add your own.</p><button data-action="reset">Reset filters</button></div>`;
+ const rows=(staple?state.staples:state.recipes).filter(x=>normalize(staple?x.name+' '+x.notes:x.name+' '+x.tags.join(' ')).includes(q)).filter(x=>staple?(ui.category==='All'||x.category===ui.category)&&(!ui.listed||!!item(x.ingredientId))&&(!ui.long||x.longStorage):(ui.tag==='All'||x.tags.includes(ui.tag))).sort((a,b)=>Number(!!b.weeklyStarred)-Number(!!a.weeklyStarred)||a.name.localeCompare(b.name));
+ $('#results-note').textContent=`${rows.length} ${staple?'staples':'recipes'} · Starred first · A–Z`;
+ $('#cards').innerHTML=rows.length?rows.map(x=>staple?`<article class="card"><div class="card-head"><div><div class="category">${escape(x.category)}</div><h3>${escape(x.name)} ${sampleBadge(x)}</h3></div>${weeklyStar(x,'staple')}</div><div class="staple-meta"><p class="keep">Keep: <strong>${x.keep} ${escape(x.unit)}</strong></p>${x.longStorage?'<span class="tag">Long storage</span>':''}</div><div class="card-links">${x.notes?`<details class="storage-notes"><summary>Storage notes</summary><p class="notes">${escape(x.notes)}</p></details>`:''}<button class="used" data-action="used" data-id="${x.id}">Used in ${counts(x.id).length} recipes →</button></div><div class="card-bottom">${purchase(x.ingredientId)}</div></article>`:`<article class="card recipe-card"><div class="recipe-card-top">${sampleBadge(x)}${weeklyStar(x,'recipe')}</div><h3><button data-action="recipe" data-id="${x.id}">${escape(x.name)}</button></h3><div class="recipe-meta"><span>${x.prep+x.cook} min total</span><span>${x.servings} servings</span></div><p class="small" style="margin:0">Prep ${x.prep} min · Cook ${x.cook} min</p><div>${x.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div><div class="card-bottom"><button data-action="recipe" data-id="${x.id}">View recipe →</button></div></article>`).join(''):`<div class="empty"><h3>${staple?'No staples found':'No recipes found'}</h3><p class="small">Try another search or reset the filters, or add your own.</p><button data-action="reset">Reset filters</button></div>`;
 }
 function prepperControls(x){return `<div class="prepper-controls"><label class="check-label"><input type="checkbox" data-inventoried="${x.id}" ${x.inventoried?'checked':''}>Inventoried</label><button class="priority-button ${x.priority?'starred':''}" data-action="prepper-star" data-id="${x.id}" aria-pressed="${x.priority}" aria-label="Need to acquire: ${escape(x.name)}"><span aria-hidden="true">${x.priority?'★':'☆'}</span> Need to acquire</button></div>`;}
 function renderPrepper(){
@@ -159,7 +208,7 @@ function renderPrepper(){
 }
 function renderPrepperCards(){
  const q=normalize(ui.search),rows=state.prepperItems.filter(x=>normalize(x.name+' '+x.category+' '+x.note).includes(q)&&(!ui.priorityOnly||x.priority)).sort((a,b)=>Number(b.priority)-Number(a.priority)||a.name.localeCompare(b.name));
- $('#prepper-cards').innerHTML=rows.length?rows.map(x=>`<article class="card prepper-card ${x.priority?'needs-acquisition':''}"><div class="category">${escape(x.category)}</div><h3><button class="prepper-title" data-action="prepper-details" data-id="${x.id}">${escape(x.name)} <span aria-hidden="true">↗</span></button></h3>${x.note?`<p class="notes">${escape(x.note)}</p>`:''}${prepperControls(x)}</article>`).join(''):'<div class="empty"><h3>No matching prepper items</h3><p class="small">Try another search or turn off the starred filter.</p></div>';
+ $('#prepper-cards').innerHTML=rows.length?rows.map(x=>`<article class="card prepper-card ${x.priority?'needs-acquisition':''}"><div class="category">${escape(x.category)}</div><h3><button class="prepper-title" data-action="prepper-details" data-id="${x.id}">${escape(x.name)} <span aria-hidden="true">↗</span></button></h3>${x.note?`<p class="notes">${escape(x.note)}</p>`:''}${prepperControls(x)}${reviewStatus(x)}</article>`).join(''):'<div class="empty"><h3>No matching prepper items</h3><p class="small">Try another search or turn off the starred filter.</p></div>';
 }
 function renderShopping(){
  const n=state.shopping.filter(x=>!x.checked).length;
@@ -175,7 +224,7 @@ function closeModal(){ $('#modal').close();modalMode=null;recipeBack=null;if(las
 function renderModal(){
  $('#modal-back').hidden=!(modalMode==='recipe'&&recipeBack);
  const b=$('#modal-body');
- if(modalMode==='prepper'){const x=state.prepperItems.find(x=>x.id===modalId);b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(x.name)}</h2><p class="small">${escape(x.category)}</p>${prepperControls(x)}<h3 style="margin-top:20px">Useful in an emergency</h3><ul class="prepper-tips">${x.tips.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><label>Status note<textarea id="prepper-note" maxlength="10000">${escape(x.note)}</textarea></label><button data-action="save-prepper-note" data-id="${x.id}">Save note</button><p class="small">Guidance: ${x.sources.map(v=>`<a href="${escape(v.url)}" target="_blank" rel="noopener noreferrer">${escape(v.label)} ↗</a>`).join(' · ')}</p>`;}
+ if(modalMode==='prepper'){const x=state.prepperItems.find(x=>x.id===modalId);b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(x.name)}</h2><p class="small">${escape(x.category)}</p>${prepperControls(x)}${reviewStatus(x)}<label class="check-label"><input type="checkbox" id="prepper-repeat" ${x.reviewEveryMonths===3?'checked':''}>Repeat review every 3 months</label><p class="small">Clearing the star starts the next review. Due items re-star when you open or return to the app. Inventoried stays unchanged.</p><h3 style="margin-top:20px">Useful in an emergency</h3><ul class="prepper-tips">${x.tips.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><label>Status note<textarea id="prepper-note" maxlength="10000">${escape(x.note)}</textarea></label><button data-action="save-prepper-note" data-id="${x.id}">Save note</button><p class="small">Guidance: ${x.sources.map(v=>`<a href="${escape(v.url)}" target="_blank" rel="noopener noreferrer">${escape(v.label)} ↗</a>`).join(' · ')}</p>`;}
  else if(modalMode==='used'){const s=state.staples.find(x=>x.id===modalId);const rows=counts(s.id);b.innerHTML=`<h2 id="modal-title" tabindex="-1">Recipes using ${escape(s.name)}</h2><p class="small">Linked by ingredient, even when you rename a staple.</p>${rows.length?rows.map(r=>`<button class="recipe-list-item" data-action="linked-recipe" data-id="${r.id}" data-back="${s.id}"><strong>${escape(r.name)}</strong><span class="small">${r.prep+r.cook} min · ${r.servings} servings ${r.sample?'· Sample':''}</span></button>`).join(''):'<div class="empty"><p>No recipes link to this staple yet. Add it as an ingredient when editing a recipe.</p></div>'}`;
  }else if(modalMode==='recipe'){const r=state.recipes.find(x=>x.id===modalId);b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(r.name)}</h2>${sampleBadge(r)}<p class="recipe-meta">${r.servings} servings · Prep ${r.prep} min · Cook ${r.cook} min</p><div>${r.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div><h3 style="margin-top:24px">Ingredients</h3><p class="small">Amounts below are for cooking. Shopping quantities can be edited separately.</p>${r.ingredients.map(l=>{const i=ingredient(l.ingredientId),x=item(i.id);return `<div class="ingredient-line"><div><strong>${escape(i.name)}</strong><div class="small">${escape(l.quantity)} ${escape(l.unit)}</div>${x?`<div class="small">To buy: ${x.quantity} ${escape(x.unit)}${x.checked?' · purchased':''}</div>`:''}</div><button data-action="${x?'remove':'add'}" data-id="${i.id}">${x?'Remove from list':'+ Add to list'}</button></div>`;}).join('')}<h3 style="margin-top:26px">Instructions</h3><p class="instructions">${escape(r.instructions)}</p>${r.notes?`<h3>Personal notes</h3><p class="instructions">${escape(r.notes)}</p>`:''}`;
  }else if(modalMode==='staple-edit'){stapleForm();}else if(modalMode==='recipe-edit'){recipeForm();}else if(modalMode==='manual'){manualForm();}else if(modalMode==='backup'){backupView();}
@@ -225,14 +274,15 @@ async function copyBackup(){
  try{if(!navigator.clipboard?.writeText)throw Error('Clipboard unavailable');await navigator.clipboard.writeText(text);$('#copy-status').textContent='Copied. Paste this text into a note or another device’s Restore field.';toast('Backup text copied');}
  catch{$('#copy-status').textContent='Automatic copying is unavailable. The text is selected: use Copy in your device menu, or Ctrl/Cmd+C.';toast('Select and copy the backup text manually');}
 }
-async function importData(file){if(!file)return;try{if(file.size>10000000)throw Error('Choose a backup smaller than 10 MB.');const next=validate(JSON.parse(await file.text()));retireStarterStaples(next);applyRequestedCollection(next);applySobaPorkCollection(next);ensurePrepper(next);if(!confirm(`Replace all current app data with ${next.staples.length} staples, ${next.recipes.length} recipes and ${next.shopping.length} shopping items and ${next.prepperItems.length} prepper items? Export a backup first if you need the current data.`))return;state=next;recovery=false;save();ui.search='';ui.category='All';ui.tag='All';closeModal();render();toast(storageOK?'Backup restored':'Restored in this tab only — export before closing');}catch(e){$('#import-error').textContent=e instanceof SyntaxError?'This file is not valid JSON. Nothing has been replaced.':e.message;}finally{if($('#import-file'))$('#import-file').value='';}}
+async function importData(file){if(!file)return;try{if(file.size>10000000)throw Error('Choose a backup smaller than 10 MB.');const next=validate(JSON.parse(await file.text()));retireStarterStaples(next);applyRequestedCollection(next);applySobaPorkCollection(next);ensurePrepper(next);addWeeklyStaples(next);if(!confirm(`Replace all current app data with ${next.staples.length} staples, ${next.recipes.length} recipes and ${next.shopping.length} shopping items and ${next.prepperItems.length} prepper items? Export a backup first if you need the current data.`))return;state=next;recovery=false;save();ui.search='';ui.category='All';ui.tag='All';closeModal();render();toast(storageOK?'Backup restored':'Restored in this tab only — export before closing');}catch(e){$('#import-error').textContent=e instanceof SyntaxError?'This file is not valid JSON. Nothing has been replaced.':e.message;}finally{if($('#import-file'))$('#import-file').value='';}}
 document.addEventListener('click',e=>{
  const tab=e.target.closest('[data-tab]');if(tab){ui.tab=tab.dataset.tab;ui.search='';render();return;}
  const category=e.target.closest('[data-category]');if(category){ui.category=category.dataset.category;render();$$('[data-category]').find(x=>x.dataset.category===ui.category)?.focus();return;}
  const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,id=b.dataset.id;
  if(['add','remove','minus','plus'].includes(a)){const inModal=!!b.closest('dialog');const oldAction=a;focusAfter(()=>{if(a==='add')add(id);else if(a==='remove'){state.shopping=state.shopping.filter(x=>x.ingredientId!==id);changed();toast('Removed from shopping list');}else{const x=item(id);x.quantity=Math.min(1000000,Math.max(1,x.quantity+(a==='plus'?1:-1)));changed();}});if(inModal){const next=$$('[data-action]',$('#modal')).find(x=>x.dataset.id===id&&(x.dataset.action===oldAction||['add','remove'].includes(x.dataset.action)));next?.focus();}else if(!document.activeElement||document.activeElement===document.body){const next=$$('[data-action]',$('#workspace')).find(x=>x.dataset.id===id);(next||$(`[data-tab="${ui.tab}"]`))?.focus();}return;}
- if(a==='prepper-details')openModal('prepper',id);
- else if(a==='prepper-star'){const x=state.prepperItems.find(x=>x.id===id);x.priority=!x.priority;focusAfter(changed);}
+ if(a==='weekly-star'){const collection=b.dataset.type==='staple'?state.staples:state.recipes;const x=collection.find(x=>x.id===id);x.weeklyStarred=!x.weeklyStarred;focusAfter(changed);}
+ else if(a==='prepper-details')openModal('prepper',id);
+ else if(a==='prepper-star'){const x=state.prepperItems.find(x=>x.id===id);x.priority=!x.priority;x.reviewDueAt=x.reviewEveryMonths===3&&!x.priority?threeMonthsFrom():null;focusAfter(changed);}
  else if(a==='save-prepper-note'){const x=state.prepperItems.find(x=>x.id===id);x.note=$('#prepper-note').value.trim();changed();toast('Status note saved');}
  else if(a==='new-staple'||a==='edit-staple')openModal('staple-edit',id);
  else if(a==='new-recipe'||a==='edit-recipe')openModal('recipe-edit',id);
@@ -254,7 +304,8 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.id==='search'){ui.search=e.target.value;if(ui.tab==='prepper')renderPrepperCards();else renderCards();}});
 document.addEventListener('change',e=>{const t=e.target;
- if(t.dataset.inventoried){const id=t.dataset.inventoried;state.prepperItems.find(x=>x.id===id).inventoried=t.checked;changed();$$('[data-inventoried]').find(x=>x.dataset.inventoried===id&&(!!x.closest('dialog')===!!modalMode))?.focus();}
+ if(t.id==='prepper-repeat'){const x=state.prepperItems.find(x=>x.id===modalId);x.reviewEveryMonths=t.checked?3:0;x.reviewDueAt=t.checked&&!x.priority?threeMonthsFrom():null;changed();$('#prepper-repeat')?.focus();}
+ else if(t.dataset.inventoried){const id=t.dataset.inventoried;state.prepperItems.find(x=>x.id===id).inventoried=t.checked;changed();$$('[data-inventoried]').find(x=>x.dataset.inventoried===id&&(!!x.closest('dialog')===!!modalMode))?.focus();}
  else if(t.id==='priority-only'){ui.priorityOnly=t.checked;renderPrepperCards();}
  else if(t.id==='listed'||t.id==='long'){ui[t.id]=t.checked;renderCards();}
  else if(t.id==='tag'){ui.tag=t.value;renderCards();}
@@ -269,5 +320,9 @@ $('#backup-button').onclick=()=>openModal('backup');$('#footer-backup').onclick=
 $('#modal-close').onclick=closeModal;$('#modal-back').onclick=()=>openModal('used',recipeBack);
 $('#modal').addEventListener('cancel',e=>{e.preventDefault();closeModal();});
 $('#modal').addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=$$('button,input,select,textarea,[tabindex="0"]',$('#modal')).filter(x=>!x.disabled&&!x.closest('[hidden]')&&x.getClientRects().length);if(!f.length)return;const first=f[0],last=f.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement.id==='modal-title')){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
+function checkPrepperReviews(){if(refreshPrepperReviews(state)){save();if(ui.tab==='prepper')render();if(modalMode==='prepper')renderModal();}}
+window.addEventListener('focus',checkPrepperReviews);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPrepperReviews();});
+setInterval(checkPrepperReviews,60000);
 warn();render();
 })();

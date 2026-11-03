@@ -52,3 +52,17 @@ The fourth bottom tab contains ten supplied readiness items and tasks. Tap an it
 Starting states match the supplied list: small battery power station and solar panel checked, other missing items starred; propane is checked as owned and starred for refill, with its partial-fill note. The two fuel tasks begin uncompleted and starred. These are starting states, not ongoing measurements. Every toggle and saved note persists in the same browser and is included in JSON file and text backups. Older backups gain this section once; existing checklist states are never reset on reload. Pantry quantities and food shopping remain separate.
 
 Water, power and fuel tips link to Government of Canada, Ontario and municipal fire-safety guidance. Water-filter advice depends on the exact certified capabilities of the elements; brand alone is not a guarantee of safe water. Twelve automated regression suites cover checklist states, ordering, modal notes, reload, backup compatibility and import validation. Four-tab navigation and the tips modal were checked at 320px without horizontal overflow.
+
+## Three-month prepper reviews
+
+Propane refill, filling the gas jerry can and the vehicle half-tank check default to recurring reviews. Clear **Need to acquire** after completing a task to schedule the next review three calendar months later. When due, it re-stars and sorts first, while **Inventoried** and status notes stay unchanged. Each item's popup includes a **Repeat review every 3 months** switch, so you can enable or disable this for any item. Durable gear defaults to a one-time acquisition.
+
+Due dates persist in localStorage and file/text backups. Old records without scheduling fields are upgraded without resetting existing checkmarks. Reviews catch up when the app opens or regains focus/visibility, and are checked every minute while open. A closed browser does not run reminders or send notifications. New prepper entries must be reviewed for recurrence under AGENTS.md.
+
+## Weekly planning and expanded supplies
+
+Staple and recipe cards have a **Plan this week** star. Starred cards sort ahead of other matching cards, alphabetically within each group. Search and filters continue to apply. These planning stars persist in browser storage and backups until you clear them; they do not automatically reset or add anything to the shopping list.
+
+The starter collection now has 29 staples, 9 recipes and 16 prepper items. Added protein powder, regular/decaf coffee, Vitamin C packets, Vitamin B pills, multivitamins, miso, chopped olives and canned sardines; Salt and Tuna are reused. Green Onion is stored as chopped/frozen while preserving its recipe links. The multivitamin reserve target is 365 tablets per adult, separate from its default shopping purchase of one bottle.
+
+New prepper essentials: backup shovel, duct tape, lighter, candles, AA and AAA batteries. Lighter and battery supplies default to three-month readiness reviews; shovel, duct tape and candles default to one-time acquisition. Each popup can override recurrence. Seventeen regression suites cover these additions, weekly sorting and persistent preferences alongside existing flows.
