@@ -40,3 +40,7 @@ The starter collection now has 12 staples and 5 recipes. Black turtle beans, can
 ## Bottom navigation and text backups
 
 Staples, Recipes and Shopping List stay in a bottom navigation bar, with space reserved so content is not covered. Backups & help supports both JSON file downloads/imports and copy/paste. Copy backup text reveals a selectable complete JSON backup; if clipboard permission is unavailable, use the device Copy menu or Ctrl/Cmd+C. Paste a complete backup into the restore field to validate it and confirm replacement. Nothing is read from the clipboard automatically.
+
+## Soba, freezer and pork additions
+
+The collection now includes 20 starter staples and 9 recipes. Eight additions: soba buckwheat noodles, cold-soba sauce, green onion, frozen blueberries, bone-in pork chops, garlic powder, paprika powder and Japanese curry cubes. Linked recipes: cold soba, garlic/paprika pork chops, pork-bone congee and simple Japanese curry rice. Pork chops and congee share an ingredient ID so the same purchase cannot be added twice. Congee notes explain using saved bones and straining out fragments. Additions apply once to existing collections and backups; ten regression suites cover the resulting links, migration and duplicate prevention.
