@@ -28,3 +28,7 @@ Open through any static HTTP server (for example `python -m http.server 8000`). 
 Verification on this version: six automated regression suites cover combined filters, shopping quantities/checked state, reload persistence, stable rename/delete links, recipe creation/editing, duplicate prevention, export/import (including cancellation and invalid files), destructive confirmations, empty collection preservation and blocked/corrupt storage. A real Chromium browser was used for search, linked-recipe shopping, Back/Escape, reload and a new-recipe form. Layout fixtures at 320px, 375px and 768px were inspected; 320px staples, shopping and recipe editor/modal had no horizontal overflow. The app produced no JavaScript errors; browser-extension messages are outside the app. Fixed-width fixtures verify narrow layout, not a physical phone's keyboard or touch behavior.
 
 A real browser JSON download/import round trip also passed, with replacement confirmation and the edited recipe and shopping items restored.
+
+## Compact browsing update
+
+Visible Edit controls have been removed as requested. Introductory copy and spacing are reduced; category buttons scroll horizontally and storage notes expand on demand. The first complete card is prioritized above the fold on a small phone; the full collection scrolls normally. Saved browser data and backup format are unchanged.
