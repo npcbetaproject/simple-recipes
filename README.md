@@ -1,0 +1,30 @@
+# Simple Recipes
+
+A phone-first recipe, staples and shopping-list app. Plain HTML, CSS and JavaScript; no build, account, server, tracking or paid service. All asset URLs are relative for GitHub Pages subdirectory hosting.
+
+## GitHub Pages
+
+In **Settings → Pages**, select **Deploy from a branch**, **main**, **/(root)**, then Save. The site is https://npcbetaproject.github.io/simple-recipes/ . No build command is needed. Future commits to main publish automatically.
+
+## Use
+
+- **Staples:** search, combine category / long-storage / shopping-only filters; cards sort A–Z. Keep is a preferred reserve target, not a stock count. Add purchases and adjust their quantities independently.
+- **Recipes:** create/edit ingredients and instructions. Choose existing ingredients to share shopping state; existing staple ingredients establish actual recipe links. A matching exact ingredient name also reuses its identity. Recipe counts are calculated from these links, never text searches. Deleting a staple removes its link but retains the ingredient, recipe amounts and shopping item.
+- **Shopping List:** group by category, edit purchase quantities and units, check off items and clear purchased items. Re-adding a listed item does not increase quantities or reset its checked state. Recipe quantities and purchase quantities are separate; there are no automatic conversions or inventory deductions.
+- **Sample** marks starter entries. Editing them removes the label; your own entries have no sample label. Sample content appears only on first use.
+
+## Storage and backup
+
+Data saves automatically in this browser on this device under `simple-recipes.v1`. It does **not sync between devices**. Clearing site data or closing private browsing can remove it. Export JSON regularly through **Backups & help**; import on another device to transfer it. Imports validate the version, IDs, references, types, quantities and uniqueness before confirming replacement. Invalid imports leave current data untouched. Export before replacement if you want to retain it.
+
+The format has `version: 1`, stable staple/recipe/ingredient/recipe-line IDs, shared ingredient records, and shopping entries keyed by ingredient ID. Future format changes should provide explicit migrations and preserve IDs; do not seed over saved data. If saved data is unreadable or from an unsupported version, the stored value is left untouched and an empty temporary workspace is used until a valid backup is imported. Blocked/full storage displays a warning; the app remains usable in memory and export still works.
+
+Long-storage notes describe conditions, not guaranteed shelf life. Follow product and appliance guidance.
+
+## Development and verification
+
+Open through any static HTTP server (for example `python -m http.server 8000`). No dependencies are needed to run the app. `node --check app.js` checks JavaScript syntax. The optional test file uses Node's test runner and jsdom (development only): `npm install --no-save --package-lock=false jsdom`, then `node --test tests/app.test.cjs`.
+
+Verification on this version: six automated regression suites cover combined filters, shopping quantities/checked state, reload persistence, stable rename/delete links, recipe creation/editing, duplicate prevention, export/import (including cancellation and invalid files), destructive confirmations, empty collection preservation and blocked/corrupt storage. A real Chromium browser was used for search, linked-recipe shopping, Back/Escape, reload and a new-recipe form. Layout fixtures at 320px, 375px and 768px were inspected; 320px staples, shopping and recipe editor/modal had no horizontal overflow. The app produced no JavaScript errors; browser-extension messages are outside the app. Fixed-width fixtures verify narrow layout, not a physical phone's keyboard or touch behavior.
+
+A real browser JSON download/import round trip also passed, with replacement confirmation and the edited recipe and shopping items restored.
