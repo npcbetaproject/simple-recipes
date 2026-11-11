@@ -1,7 +1,7 @@
 'use strict';
 (() => {
 const KEY='simple-recipes.v1', VERSION=1;
-const RECURRING_PREPPER_IDS=new Set(['propane','gas-jerry-can','vehicle-half-tank','lighter','aa-batteries','aaa-batteries']);
+const RECURRING_PREPPER_IDS=new Set(['propane','gas-jerry-can','vehicle-half-tank','lighter','aa-batteries','aaa-batteries','fuel-source']);
 const CATEGORIES=['Grains & pasta','Canned foods','Beans & lentils','Baking','Oils & seasonings','Breakfast','Produce','Refrigerated','Freezer','Other'];
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,6 +14,24 @@ function seedPrepper(){
  const power={label:'Canada: preparing for power outages',url:'https://www.canada.ca/en/services/policing/emergencies/preparedness/get-prepared/hazards-emergencies/power-outages/how-prepare.html'};
  const row=(id,name,category,inventoried,priority,note,tips,sources=[guide])=>({id,name,category,inventoried,priority,note,tips,sources,reviewEveryMonths:RECURRING_PREPPER_IDS.has(id)?3:0,reviewDueAt:null});
  return [
+ row('fuel-source','Fuel source','Fuel & readiness',false,true,'',[
+  'Cooking and boiling water: keep fuel that matches your stove, a suitable pot with a lid and a reliable lighter. Test the complete setup before an outage; fuel needs depend on the stove, weather, water volume and cooking time.',
+  'Wood and a saw: use dry, seasoned, untreated wood. Secure it on a stable support and use a suitable hand or folding saw to cut pieces short enough for the stove; sawing shortens wood but does not split thick logs into kindling. Keep hands clear of the blade and wear eye protection. Prepare small kindling in advance. Never burn painted, pressure-treated or glued wood, plywood, rubbish or plastics.',
+  'Propane: a compatible outdoor camping stove or barbecue offers adjustable heat for cooking and boiling water. Match the cylinder, regulator and hose to the appliance instructions; do not improvise adapters. Check the fuel supply and connections as directed, and have cylinders refilled or exchanged by an authorised supplier. Store cylinders upright outdoors in a ventilated location away from heat and ignition sources, following local rules.',
+  'Small sticks for a rocket stove: use dry twigs, kindling and small untreated wood pieces sized to the feed opening. Add small amounts as needed without blocking the air path, following the stove manual. Keep a dry reserve; wet sticks are harder to light and produce more smoke. These stoves need regular attention and a stable pot support.',
+  'Solo Stove camping stove: wood-burning camp models such as Lite use dry twigs and small wood pieces. Follow the exact model manual for fuel size, loading and pot support. Prepare fuel before lighting and keep air vents clear. A gas-canister camping stove instead needs its specified gas fuel; never put sticks into it. Low smoke does not mean carbon-monoxide-free.',
+  'Outdoor use only: use these portable fuel-burning stoves in open air, away from doors, windows and vents, with the clearances in the manual. Never use them inside a home, garage, tent or vehicle, even with a door or window open. Place on a stable, noncombustible surface, keep children and pets away, never leave unattended and keep an appropriate way to extinguish a fire nearby. Let the stove and ashes cool fully before handling.',
+  'Check local fire rules and current restrictions before using wood or sticks; a contained flame or a cooking purpose does not automatically make burning legal. Toronto restricts open-air and solid-fuel burning: check with Toronto Fire Services before relying on a wood-burning setup at home.',
+  'Boiling drinking water: follow the local health advisory. For microbiological contamination, Health Canada advises a rolling boil for at least 1 minute, then cool safely in a clean, covered container. Boiling does not remove fuel, chemicals or heavy metals; use a safe alternative water supply under a do-not-consume or do-not-use advisory.',
+  'Readiness review: every 3 months, check that wood and kindling are dry, propane is available, the saw and lighter work, and the stove and pot are ready. Clear Need to acquire after preparing or replenishing your fuel; Inventoried remains a separate checkmark.'
+ ],[
+  {label:'Health Canada: preventing carbon monoxide exposure',url:'https://www.canada.ca/en/health-canada/services/air-quality/pollutants/carbon-monoxide/preventing-exposure.html'},
+  {label:'Health Canada: boil-water guidance',url:'https://www.canada.ca/en/health-canada/services/publications/healthy-living/guidance-issuing-rescinding-boil-water-advisories-canadian-drinking-water-supplies.html'},
+  {label:'Solo Stove Lite: fuel and safe use',url:'https://www.solostove.com/ca/en-ca/p/SS1-FBA'},
+  {label:'Ontario: outdoor fire restrictions',url:'https://www.ontario.ca/page/outdoor-fire-restrictions'},
+  {label:'Toronto: outdoor fires and solid-fuel appliances',url:'https://www.toronto.ca/home/311-toronto-at-your-service/find-service-information/article/?kb=kA06g000001cwNkCAI'},
+  {label:'Ottawa Fire Services: propane safety',url:'https://ottawa.ca/en/health-and-public-safety/ottawa-fire-services/fire-safety/outdoor-fire-safety/propane-safety'}
+ ]),
  row('backup-shovel','Backup shovel','Tools & cleanup',false,true,'',['Useful for clearing snow, loose soil or light debris so you can reach exits, supplies or a vehicle.','Store it where you can reach it without entering a blocked area. Wear suitable gloves and footwear; do not use it near live electrical equipment or damaged utility lines.']),
  row('duct-tape','Duct tape','Tools & cleanup',false,true,'',['Useful for temporary repairs, securing protective sheeting and labelling or bundling supplies.','Keep the roll dry and protected from extreme temperatures. It is not a substitute for proper structural, electrical or gas-line repairs.']),
  row('lighter','Lighter','Light & essentials',false,true,'',['Useful for lighting a compatible outdoor cooking appliance or emergency candle when appropriate.','Keep it away from children, heat and fuel containers. Test it periodically and check remaining fuel; follow the lighter and appliance instructions.','Battery lights avoid the fire risk of an open flame. Never use a lighter to check a gas leak.'],[{label:'Ontario fire safety',url:'https://www.ontario.ca/page/fire-safety-home'}]),
@@ -61,7 +79,13 @@ function addWeeklyStaples(d){
  if(old?.sample&&i?.sample){old.name=next.name;old.category=next.category;old.notes=next.notes;i.name=next.name;i.category=next.category;}
  d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
 }
-function ensurePrepper(d){let updated=false;if(d.prepperItems===undefined){d.prepperItems=seedPrepper();updated=true;}const added=addPrepperEssentials(d);return refreshPrepperReviews(d)||updated||added;}
+function addFuelSource(d){
+ const update='prepper-fuel-source-2026-11-11';if(d.appliedUpdates?.includes(update)||!d.prepperItems.length)return false;
+ const next=seedPrepper().find(x=>x.id==='fuel-source');
+ if(!d.prepperItems.some(x=>x.id===next.id||normalize(x.name)===normalize(next.name)))d.prepperItems.push(next);
+ d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
+}
+function ensurePrepper(d){let updated=false;if(d.prepperItems===undefined){d.prepperItems=seedPrepper();updated=true;}const added=addPrepperEssentials(d),fuelAdded=addFuelSource(d);return refreshPrepperReviews(d)||updated||added||fuelAdded;}
 function reviewStatus(x){if(!x.reviewEveryMonths)return '';return `<p class="small review-status">${x.priority?'Repeats 3 months after clearing the star':`Due again: ${escape(new Date(x.reviewDueAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}))}`}</p>`;}
 
 function seed(){

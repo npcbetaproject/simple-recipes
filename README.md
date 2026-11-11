@@ -66,3 +66,7 @@ Staple and recipe cards have a **Plan this week** star. Starred cards sort ahead
 The starter collection now has 29 staples, 9 recipes and 16 prepper items. Added protein powder, regular/decaf coffee, Vitamin C packets, Vitamin B pills, multivitamins, miso, chopped olives and canned sardines; Salt and Tuna are reused. Green Onion is stored as chopped/frozen while preserving its recipe links. The multivitamin reserve target is 365 tablets per adult, separate from its default shopping purchase of one bottle.
 
 New prepper essentials: backup shovel, duct tape, lighter, candles, AA and AAA batteries. Lighter and battery supplies default to three-month readiness reviews; shovel, duct tape and candles default to one-time acquisition. Each popup can override recurrence. Seventeen regression suites cover these additions, weekly sorting and persistent preferences alongside existing flows.
+
+## Cooking fuel source
+
+The Prepper checklist includes **Fuel source**, covering saw-prepared wood, propane, small sticks for rocket stoves and Solo Stove wood-burning camp stoves, plus boiling-water guidance and outdoor-use precautions. Source links include Health Canada, the stove manufacturer and local fire authorities. Fuel supply and readiness default to a three-calendar-month review. The entry is added once to existing nonempty checklists and older backups; saved flags, notes, dates and deliberately empty checklists are preserved. The app script URL is versioned for the update.
