@@ -70,3 +70,11 @@ New prepper essentials: backup shovel, duct tape, lighter, candles, AA and AAA b
 ## Cooking fuel source
 
 The Prepper checklist includes **Fuel source**, covering saw-prepared wood, propane, small sticks for rocket stoves and Solo Stove wood-burning camp stoves, plus boiling-water guidance and outdoor-use precautions. Source links include Health Canada, the stove manufacturer and local fire authorities. Fuel supply and readiness default to a three-calendar-month review. The entry is added once to existing nonempty checklists and older backups; saved flags, notes, dates and deliberately empty checklists are preserved. The app script URL is versioned for the update.
+
+## Water purification and compact Prepper browsing
+
+The Prepper list now uses compact rows with a 44px inventory control, tappable instruction title and an independent priority star. Categories, full status notes and recurrence controls remain in the instruction dialog. Two columns are used on wider screens and one on phones. Instruction typography and spacing are tighter; checklist settings and notes expand on demand.
+
+**Water purification** covers choosing safe water, clarification, boiling, a labelled approximately 5.25% bleach chart (1, 2, 4, 5, 10 and 20 litres), contact times and treatment limits. The chart uses HealthLink BC’s per-litre rates; the boiling guidance follows CDC, including its high-altitude timing. Links to both authorities and EPA remain available in the guide. Local advisories and product drinking-water instructions take precedence.
+
+The collection has 18 prepper entries. Water-treatment supply readiness defaults to a three-calendar-month review; users can opt out. A one-time migration adds the guide to existing nonempty lists and older backups without resetting saved flags, notes or review dates. Deliberately empty checklists stay empty. Nineteen regression tests pass, including guide migration, bleach chart arithmetic, saved settings, month-end review dates and backups.

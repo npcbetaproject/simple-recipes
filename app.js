@@ -1,7 +1,7 @@
 'use strict';
 (() => {
 const KEY='simple-recipes.v1', VERSION=1;
-const RECURRING_PREPPER_IDS=new Set(['propane','gas-jerry-can','vehicle-half-tank','lighter','aa-batteries','aaa-batteries','fuel-source']);
+const RECURRING_PREPPER_IDS=new Set(['propane','gas-jerry-can','vehicle-half-tank','lighter','aa-batteries','aaa-batteries','fuel-source','water-purification']);
 const CATEGORIES=['Grains & pasta','Canned foods','Beans & lentils','Baking','Oils & seasonings','Breakfast','Produce','Refrigerated','Freezer','Other'];
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,6 +14,20 @@ function seedPrepper(){
  const power={label:'Canada: preparing for power outages',url:'https://www.canada.ca/en/services/policing/emergencies/preparedness/get-prepared/hazards-emergencies/power-outages/how-prepare.html'};
  const row=(id,name,category,inventoried,priority,note,tips,sources=[guide])=>({id,name,category,inventoried,priority,note,tips,sources,reviewEveryMonths:RECURRING_PREPPER_IDS.has(id)?3:0,reviewDueAt:null});
  return [
+ row('water-purification','Water purification','Water',false,true,'',[
+  'Use bottled water or obey the local advisory first. Boiling and bleach cannot remove fuel, toxic chemicals or heavy metals; use another safe source if contamination is suspected or a do-not-consume / do-not-use notice applies.',
+  'First clarify cloudy water: filter through a clean cloth or coffee filter, let particles settle and pour off the clearer water. This step alone does not disinfect it.',
+  'Boil: bring clarified water to a rolling boil for 1 minute (3 minutes above 2,000 metres, following CDC guidance). Cool and store covered in a clean, food-grade container. Boiling is preferred for killing germs, including parasites.',
+  'Bleach chart: for plain, unscented household chlorine bleach at approximately 5.25% sodium hypochlorite only. Follow product drinking-water directions when supplied; check the strength and use a clean dropper. Do not use scented, splashless, colour-safe or cleaner-added products. Never mix bleach with other chemicals.',
+  'Clear water at room temperature: use 2 drops per litre. Stir, cover and wait 30 minutes. If no slight chlorine smell remains, repeat the original dose and wait another 15 minutes. Smell alone cannot confirm water is safe.',
+  'Cloudy or cold water below 10°C: clarify first, use 4 drops per litre, then stir, cover and wait 1–2 hours. If water remains very dirty, choose a safer source. This chart treats drinking water, not containers or surfaces.',
+  'Filters and tablets: ordinary pitcher filters do not make unsafe water safe. Check the exact filter’s independently certified pathogen claims; many portable filters do not remove viruses. Follow water-treatment tablet directions for the organism, volume and contact time. Bleach is less effective than boiling against Giardia and Cryptosporidium.',
+  'Readiness: check bleach age and label, treatment-tablet expiry dates, filter condition, a clean dropper, a pot and covered food-grade containers every 3 months. Follow the product storage and replacement instructions; bleach loses strength over time. Keep treated water separate from untreated water.'
+ ],[
+  {label:'HealthLink BC: disinfecting drinking water',url:'https://www.healthlinkbc.ca/healthlinkbc-files/disinfecting-drinking-water'},
+  {label:'CDC: emergency water treatment',url:'https://www.cdc.gov/water-emergency/about/'},
+  {label:'EPA: emergency disinfection and fresh bleach',url:'https://www.epa.gov/ground-water-and-drinking-water/emergency-disinfection-drinking-water'}
+ ]),
  row('fuel-source','Fuel source','Fuel & readiness',false,true,'',[
   'Cooking and boiling water: keep fuel that matches your stove, a suitable pot with a lid and a reliable lighter. Test the complete setup before an outage; fuel needs depend on the stove, weather, water volume and cooking time.',
   'Wood and a saw: use dry, seasoned, untreated wood. Secure it on a stable support and use a suitable hand or folding saw to cut pieces short enough for the stove; sawing shortens wood but does not split thick logs into kindling. Keep hands clear of the blade and wear eye protection. Prepare small kindling in advance. Never burn painted, pressure-treated or glued wood, plywood, rubbish or plastics.',
@@ -85,7 +99,13 @@ function addFuelSource(d){
  if(!d.prepperItems.some(x=>x.id===next.id||normalize(x.name)===normalize(next.name)))d.prepperItems.push(next);
  d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
 }
-function ensurePrepper(d){let updated=false;if(d.prepperItems===undefined){d.prepperItems=seedPrepper();updated=true;}const added=addPrepperEssentials(d),fuelAdded=addFuelSource(d);return refreshPrepperReviews(d)||updated||added||fuelAdded;}
+function addWaterPurification(d){
+ const update='prepper-water-purification-2026-11-11';if(d.appliedUpdates?.includes(update)||!d.prepperItems.length)return false;
+ const next=seedPrepper().find(x=>x.id==='water-purification');
+ if(!d.prepperItems.some(x=>x.id===next.id||normalize(x.name)===normalize(next.name)))d.prepperItems.push(next);
+ d.appliedUpdates=[...(d.appliedUpdates||[]),update];return true;
+}
+function ensurePrepper(d){let updated=false;if(d.prepperItems===undefined){d.prepperItems=seedPrepper();updated=true;}const added=addPrepperEssentials(d),fuelAdded=addFuelSource(d),waterAdded=addWaterPurification(d);return refreshPrepperReviews(d)||updated||added||fuelAdded||waterAdded;}
 function reviewStatus(x){if(!x.reviewEveryMonths)return '';return `<p class="small review-status">${x.priority?'Repeats 3 months after clearing the star':`Due again: ${escape(new Date(x.reviewDueAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}))}`}</p>`;}
 
 function seed(){
@@ -233,12 +253,16 @@ function renderCards(){
 function prepperControls(x){return `<div class="prepper-controls"><label class="check-label"><input type="checkbox" data-inventoried="${x.id}" ${x.inventoried?'checked':''}>Inventoried</label><button class="priority-button ${x.priority?'starred':''}" data-action="prepper-star" data-id="${x.id}" aria-pressed="${x.priority}" aria-label="Need to acquire: ${escape(x.name)}"><span aria-hidden="true">${x.priority?'★':'☆'}</span> Need to acquire</button></div>`;}
 function renderPrepper(){
  const ready=state.prepperItems.filter(x=>x.inventoried).length,needed=state.prepperItems.filter(x=>x.priority).length;
- $('#workspace').innerHTML=`<div class="section-heading"><div><h2>Prepper items</h2><p class="small">${ready} inventoried · ${needed} starred to acquire or refill</p></div></div><div class="toolbar"><label class="search">Search prepper items<input type="search" id="search" placeholder="Find gear, water or readiness tasks…" value="${escape(ui.search)}"></label><label class="check-label"><input type="checkbox" id="priority-only" ${ui.priorityOnly?'checked':''}>Need to acquire only</label></div><p class="small results-note">Stars stay at the top. Checkmarks and stars are independent.</p><div id="prepper-cards" class="grid"></div>`;
+ $('#workspace').innerHTML=`<div class="section-heading"><div><h2>Prepper items</h2><p class="small">${ready} inventoried · ${needed} starred to acquire or refill</p></div></div><div class="toolbar"><label class="search">Search prepper items<input type="search" id="search" placeholder="Find gear, water or readiness tasks…" value="${escape(ui.search)}"></label><label class="check-label"><input type="checkbox" id="priority-only" ${ui.priorityOnly?'checked':''}>Need to acquire only</label></div><p class="small results-note">Tap a name for instructions · ✓ Inventoried · ★ Need to acquire / refill</p><div id="prepper-cards" class="grid"></div>`;
  renderPrepperCards();
 }
 function renderPrepperCards(){
  const q=normalize(ui.search),rows=state.prepperItems.filter(x=>normalize(x.name+' '+x.category+' '+x.note).includes(q)&&(!ui.priorityOnly||x.priority)).sort((a,b)=>Number(b.priority)-Number(a.priority)||a.name.localeCompare(b.name));
- $('#prepper-cards').innerHTML=rows.length?rows.map(x=>`<article class="card prepper-card ${x.priority?'needs-acquisition':''}"><div class="category">${escape(x.category)}</div><h3><button class="prepper-title" data-action="prepper-details" data-id="${x.id}">${escape(x.name)} <span aria-hidden="true">↗</span></button></h3>${x.note?`<p class="notes">${escape(x.note)}</p>`:''}${prepperControls(x)}${reviewStatus(x)}</article>`).join(''):'<div class="empty"><h3>No matching prepper items</h3><p class="small">Try another search or turn off the starred filter.</p></div>';
+ $('#prepper-cards').innerHTML=rows.length?rows.map(x=>`<article class="card prepper-card ${x.priority?'needs-acquisition':''}"><label class="prepper-inventory"><input type="checkbox" data-inventoried="${x.id}" ${x.inventoried?'checked':''} aria-label="Inventoried: ${escape(x.name)}"></label><h3><button class="prepper-title" data-action="prepper-details" data-id="${x.id}">${escape(x.name)} <span aria-hidden="true">›</span></button></h3><button class="priority-button ${x.priority?'starred':''}" data-action="prepper-star" data-id="${x.id}" aria-pressed="${x.priority}" aria-label="Need to acquire: ${escape(x.name)}"><span aria-hidden="true">${x.priority?'★':'☆'}</span></button></article>`).join(''):'<div class="empty"><h3>No matching prepper items</h3><p class="small">Try another search or turn off the starred filter.</p></div>';
+}
+function waterGuide(x){
+ const text=i=>escape(x.tips[i]);
+ return `<p class="water-caution">${text(0)}</p><p>${text(1)}</p><h3>1. Boil when possible</h3><p>${text(2)}</p><h3>2. Bleach when boiling is impractical</h3><p>${text(3)}</p><table class="water-chart"><caption>Drops for approximately 5.25% bleach</caption><thead><tr><th scope="col">Water</th><th scope="col">Clear</th><th scope="col">Cloudy / cold*</th></tr></thead><tbody>${[1,2,4,5,10,20].map(l=>`<tr><th scope="row">${l} L</th><td>${l*2} drops</td><td>${l*4} drops</td></tr>`).join('')}</tbody></table><p class="small">*Below 10°C or cloudy after clarification. Amounts scale HealthLink BC’s per-litre guidance; use a dropper, not an estimated spoonful.</p><p>${text(4)}</p><p>${text(5)}</p><details class="guide-more"><summary>Filters, tablets & readiness</summary><p>${text(6)}</p><p>${text(7)}</p></details>`;
 }
 function renderShopping(){
  const n=state.shopping.filter(x=>!x.checked).length;
@@ -254,7 +278,11 @@ function closeModal(){ $('#modal').close();modalMode=null;recipeBack=null;if(las
 function renderModal(){
  $('#modal-back').hidden=!(modalMode==='recipe'&&recipeBack);
  const b=$('#modal-body');
- if(modalMode==='prepper'){const x=state.prepperItems.find(x=>x.id===modalId);b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(x.name)}</h2><p class="small">${escape(x.category)}</p>${prepperControls(x)}${reviewStatus(x)}<label class="check-label"><input type="checkbox" id="prepper-repeat" ${x.reviewEveryMonths===3?'checked':''}>Repeat review every 3 months</label><p class="small">Clearing the star starts the next review. Due items re-star when you open or return to the app. Inventoried stays unchanged.</p><h3 style="margin-top:20px">Useful in an emergency</h3><ul class="prepper-tips">${x.tips.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><label>Status note<textarea id="prepper-note" maxlength="10000">${escape(x.note)}</textarea></label><button data-action="save-prepper-note" data-id="${x.id}">Save note</button><p class="small">Guidance: ${x.sources.map(v=>`<a href="${escape(v.url)}" target="_blank" rel="noopener noreferrer">${escape(v.label)} ↗</a>`).join(' · ')}</p>`;}
+ if(modalMode==='prepper'){
+  const x=state.prepperItems.find(x=>x.id===modalId),settingsOpen=$('#prepper-settings')?.open;
+  const tips=x.id==='water-purification'?waterGuide(x):`<h3>Useful in an emergency</h3><ul class="prepper-tips">${x.tips.map(t=>`<li>${escape(t)}</li>`).join('')}</ul>`;
+  b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(x.name)}</h2><p class="small">${escape(x.category)}</p><div class="prepper-guide">${tips}</div><details id="prepper-settings" ${settingsOpen?'open':''}><summary>Checklist, review & status note</summary>${prepperControls(x)}${reviewStatus(x)}<label class="check-label"><input type="checkbox" id="prepper-repeat" ${x.reviewEveryMonths===3?'checked':''}>Repeat review every 3 months</label><p class="small">Clear the star after a readiness check to schedule the next review. Due items re-star when you open or return to the app.</p><label>Status note<textarea id="prepper-note" maxlength="10000">${escape(x.note)}</textarea></label><button data-action="save-prepper-note" data-id="${x.id}">Save note</button></details><p class="small">Guidance: ${x.sources.map(v=>`<a href="${escape(v.url)}" target="_blank" rel="noopener noreferrer">${escape(v.label)} ↗</a>`).join(' · ')}</p>`;
+ }
  else if(modalMode==='used'){const s=state.staples.find(x=>x.id===modalId);const rows=counts(s.id);b.innerHTML=`<h2 id="modal-title" tabindex="-1">Recipes using ${escape(s.name)}</h2><p class="small">Linked by ingredient, even when you rename a staple.</p>${rows.length?rows.map(r=>`<button class="recipe-list-item" data-action="linked-recipe" data-id="${r.id}" data-back="${s.id}"><strong>${escape(r.name)}</strong><span class="small">${r.prep+r.cook} min · ${r.servings} servings ${r.sample?'· Sample':''}</span></button>`).join(''):'<div class="empty"><p>No recipes link to this staple yet. Add it as an ingredient when editing a recipe.</p></div>'}`;
  }else if(modalMode==='recipe'){const r=state.recipes.find(x=>x.id===modalId);b.innerHTML=`<h2 id="modal-title" tabindex="-1">${escape(r.name)}</h2>${sampleBadge(r)}<p class="recipe-meta">${r.servings} servings · Prep ${r.prep} min · Cook ${r.cook} min</p><div>${r.tags.map(t=>`<span class="tag">${escape(t)}</span>`).join('')}</div><h3 style="margin-top:24px">Ingredients</h3><p class="small">Amounts below are for cooking. Shopping quantities can be edited separately.</p>${r.ingredients.map(l=>{const i=ingredient(l.ingredientId),x=item(i.id);return `<div class="ingredient-line"><div><strong>${escape(i.name)}</strong><div class="small">${escape(l.quantity)} ${escape(l.unit)}</div>${x?`<div class="small">To buy: ${x.quantity} ${escape(x.unit)}${x.checked?' · purchased':''}</div>`:''}</div><button data-action="${x?'remove':'add'}" data-id="${i.id}">${x?'Remove from list':'+ Add to list'}</button></div>`;}).join('')}<h3 style="margin-top:26px">Instructions</h3><p class="instructions">${escape(r.instructions)}</p>${r.notes?`<h3>Personal notes</h3><p class="instructions">${escape(r.notes)}</p>`:''}`;
  }else if(modalMode==='staple-edit'){stapleForm();}else if(modalMode==='recipe-edit'){recipeForm();}else if(modalMode==='manual'){manualForm();}else if(modalMode==='backup'){backupView();}
